@@ -149,6 +149,9 @@ public:
      */
     virtual void GetSuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV);
 
+    // change
+    virtual void GetIslandSuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV);
+
 
     virtual void GetLazySuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV, std::vector<bool>* isTrueCost){
       GetSuccs(SourceStateID, SuccIDV, CostV);

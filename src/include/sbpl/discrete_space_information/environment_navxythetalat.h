@@ -266,6 +266,8 @@ public:
      * \brief see comments on the same function in the parent class
      */
     virtual void GetSuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV);
+    virtual void GetIslandSuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV);
+
     virtual void GetLazySuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV, std::vector<bool>* isTrueCost);
     virtual void GetSuccsWithUniqueIds(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV);
     virtual void GetLazySuccsWithUniqueIds(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV, std::vector<bool>* isTrueCost);

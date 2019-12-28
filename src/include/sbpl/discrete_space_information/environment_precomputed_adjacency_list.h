@@ -111,6 +111,10 @@ public:
     void SetAllActionsandAllOutcomes(CMDPSTATE* state);
     void SetAllPreds(CMDPSTATE* state);
     void GetSuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV);
+
+    //change
+    void GetIslandSuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV);
+
     void GetPreds(int TargetStateID, std::vector<int>* PredIDV, std::vector<int>* CostV);
     int SizeofCreatedEnv();
     void PrintState(int stateID, bool bVerbose, FILE* fOut = NULL);
@@ -344,6 +348,23 @@ void AdjacencyListSBPLEnv<Coords>::SetAllPreds(CMDPSTATE* state)
 
 template<class Coords>
 void AdjacencyListSBPLEnv<Coords>::GetSuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV)
+{
+    SuccIDV->clear();
+    CostV->clear();
+
+    if (SourceStateID == goalStateId_) {
+        return;
+    }
+
+    Adjacencies& v = adjacency_vector_[SourceStateID];
+    for (AdjListIterator i = v.begin(); i != v.end(); i++) {
+        SuccIDV->push_back(i->neighbor);
+        CostV->push_back(i->cost);
+    }
+}
+
+template<class Coords>
+void AdjacencyListSBPLEnv<Coords>::GetIslandSuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV)
 {
     SuccIDV->clear();
     CostV->clear();

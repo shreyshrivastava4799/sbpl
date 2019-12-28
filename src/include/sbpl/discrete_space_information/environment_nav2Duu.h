@@ -210,6 +210,11 @@ public:
         throw SBPL_Exception("ERROR: GetSuccs not supported in NAV2D_UNDER_UNCERTAINTY");
     }
 
+    virtual void GetIslandSuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV)
+    {
+        throw SBPL_Exception("ERROR: GetIslandSuccs not supported in NAV2D_UNDER_UNCERTAINTY");
+    }
+
     /**
      * \brief not fully implemented yet
      */

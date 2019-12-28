@@ -927,6 +927,81 @@ void EnvironmentNAV2D::GetSuccs(int SourceStateID, vector<int>* SuccIDV, vector<
 #endif
 }
 
+void EnvironmentNAV2D::GetIslandSuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV)
+{
+    int aind;
+
+#if TIME_DEBUG
+    clock_t currenttime = clock();
+#endif
+
+    //clear the successor array
+    SuccIDV->clear();
+    CostV->clear();
+    SuccIDV->reserve(EnvNAV2DCfg.numofdirs);
+    CostV->reserve(EnvNAV2DCfg.numofdirs);
+
+    //goal state should be absorbing
+    if (SourceStateID == EnvNAV2D.goalstateid) return;
+
+    //get X, Y for the state
+    EnvNAV2DHashEntry_t* HashEntry = EnvNAV2D.StateID2CoordTable[SourceStateID];
+
+    //iterate through actions
+    bool bTestBounds = false;
+    if (HashEntry->X <= 1 || HashEntry->X >= EnvNAV2DCfg.EnvWidth_c - 2 || HashEntry->Y <= 1 ||
+        HashEntry->Y >= EnvNAV2DCfg.EnvHeight_c - 2)
+    {
+        bTestBounds = true;
+    }
+    for (aind = 0; aind < EnvNAV2DCfg.numofdirs; aind++) {
+        int newX = HashEntry->X + EnvNAV2DCfg.dx_[aind];
+        int newY = HashEntry->Y + EnvNAV2DCfg.dy_[aind];
+
+        //skip the invalid cells
+        if (bTestBounds) {
+            if (!IsValidCell(newX, newY)) continue;
+        }
+
+        int costmult = EnvNAV2DCfg.Grid2D[newX][newY];
+
+        //for diagonal move, take max over adjacent cells
+        if (newX != HashEntry->X && newY != HashEntry->Y && aind <= 7) {
+            costmult = __max(costmult, EnvNAV2DCfg.Grid2D[HashEntry->X][newY]);
+            costmult = __max(costmult, EnvNAV2DCfg.Grid2D[newX][HashEntry->Y]);
+        }
+        else if (aind > 7) {
+            //check two more cells through which the action goes
+            costmult = __max(costmult,
+                             EnvNAV2DCfg.Grid2D[HashEntry->X + EnvNAV2DCfg.dxintersects_[aind][0]][HashEntry->Y
+                                 + EnvNAV2DCfg.dyintersects_[aind][0]]);
+            costmult = __max(costmult,
+                             EnvNAV2DCfg.Grid2D[HashEntry->X + EnvNAV2DCfg.dxintersects_[aind][1]][HashEntry->Y
+                                 + EnvNAV2DCfg.dyintersects_[aind][1]]);
+        }
+
+        //check that it is valid
+        if (costmult >= EnvNAV2DCfg.obsthresh) continue;
+
+        //otherwise compute the actual cost
+        int cost = (costmult + 1) * EnvNAV2DCfg.dxy_distance_mm_[aind];
+
+        EnvNAV2DHashEntry_t* OutHashEntry;
+        if ((OutHashEntry = GetHashEntry(newX, newY)) == NULL) {
+            //have to create a new entry
+            OutHashEntry = CreateNewHashEntry(newX, newY);
+        }
+
+        SuccIDV->push_back(OutHashEntry->stateID);
+        CostV->push_back(cost);
+    }
+
+#if TIME_DEBUG
+    time_getsuccs += clock()-currenttime;
+#endif
+}
+
+
 void EnvironmentNAV2D::GetPreds(int TargetStateID, vector<int>* PredIDV, vector<int>* CostV)
 {
     int aind;

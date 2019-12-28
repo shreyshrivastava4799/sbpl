@@ -2084,6 +2084,14 @@ void EnvironmentNAVXYTHETALATTICE::GetSuccs(
 {
     GetSuccs(SourceStateID, SuccIDV, CostV, NULL);
 }
+
+void EnvironmentNAVXYTHETALATTICE::GetIslandSuccs(
+    int SourceStateID,
+    std::vector<int>* SuccIDV,
+    std::vector<int>* CostV)
+{
+	// to do
+}
 void EnvironmentNAVXYTHETALATTICE::GetLazySuccs(
     int SourceStateID,
     std::vector<int>* SuccIDV,

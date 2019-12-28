@@ -1225,6 +1225,78 @@ void EnvironmentROBARM::SetAllActionsandAllOutcomes(CMDPSTATE* state)
     throw SBPL_Exception("ERROR in EnvROBARM..function: SetAllActionsandAllOutcomes is undefined");
 }
 
+void EnvironmentROBARM::GetIslandSuccs(int SourceStateID, vector<int>* SuccIDV, vector<int>* CostV)
+{
+    int i, inc;
+    short unsigned int succcoord[NUMOFLINKS];
+    double angles[NUMOFLINKS];
+
+    //clear the successor array
+    SuccIDV->clear();
+    CostV->clear();
+
+    //goal state should be absorbing
+    if (SourceStateID == EnvROBARM.goalHashEntry->stateID) return;
+
+    //get X, Y for the state
+    EnvROBARMHashEntry_t* HashEntry = EnvROBARM.StateID2CoordTable[SourceStateID];
+
+    //default coords of successor
+    for (i = 0; i < NUMOFLINKS; i++)
+        succcoord[i] = HashEntry->coord[i];
+
+    //iterate through successors of s
+    for (i = 0; i < NUMOFLINKS; i++) {
+        //increase and decrease in ith angle
+        for (inc = -1; inc < 2; inc = inc + 2) {
+            if (inc == -1) {
+                if (HashEntry->coord[i] == 0)
+                    succcoord[i] = EnvROBARMCfg.anglevals[i] - 1;
+                else
+                    succcoord[i] = HashEntry->coord[i] + inc;
+            }
+            else {
+                succcoord[i] = (HashEntry->coord[i] + inc) % EnvROBARMCfg.anglevals[i];
+            }
+
+            //skip invalid successors
+            if (!IsValidCoord(succcoord)) continue;
+
+            //get the successor
+            EnvROBARMHashEntry_t* OutHashEntry;
+            bool bSuccisGoal = false;
+            short unsigned int endeffx = 0, endeffy = 0;
+            bool bEndEffComputed = false;
+            if (abs(HashEntry->endeffx - EnvROBARMCfg.EndEffGoalX_c) < 3 || abs(HashEntry->endeffy
+                - EnvROBARMCfg.EndEffGoalY_c) < 3) {
+                //do a strict checks on the endeff coordinates of the successor
+                ComputeContAngles(succcoord, angles);
+                ComputeEndEffectorPos(angles, &endeffx, &endeffy);
+                if (endeffx == EnvROBARMCfg.EndEffGoalX_c && endeffy == EnvROBARMCfg.EndEffGoalY_c) {
+                    bSuccisGoal = true;
+                    //SBPL_PRINTF("goal succ is generated\n");
+                }
+                bEndEffComputed = true;
+            }
+
+            if ((OutHashEntry = GetHashEntry(succcoord, NUMOFLINKS, bSuccisGoal)) == NULL) {
+                if (bEndEffComputed == false) {
+                    ComputeContAngles(succcoord, angles);
+                    ComputeEndEffectorPos(angles, &endeffx, &endeffy);
+                }
+
+                //have to create a new entry
+                OutHashEntry = CreateNewHashEntry(succcoord, NUMOFLINKS, endeffx, endeffy);
+            }
+            SuccIDV->push_back(OutHashEntry->stateID);
+            CostV->push_back(cost(HashEntry->coord, succcoord));
+        }
+
+        //restore it back
+        succcoord[i] = HashEntry->coord[i];
+    }
+}
+
 void EnvironmentROBARM::GetSuccs(int SourceStateID, vector<int>* SuccIDV, vector<int>* CostV)
 {
     int i, inc;

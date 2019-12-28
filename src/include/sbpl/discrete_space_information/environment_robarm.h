@@ -153,6 +153,9 @@ public:
      * \brief see comments on the same function in the parent class
      */
     virtual void GetSuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV);
+    
+    // change
+    virtual void GetIslandSuccs(int SourceStateID, std::vector<int>* SuccIDV, std::vector<int>* CostV);
 
     /**
      * \brief see comments on the same function in the parent class
